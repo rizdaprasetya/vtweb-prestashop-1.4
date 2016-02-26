@@ -657,8 +657,9 @@ class VeritransPay extends PaymentModule
 	}
 
 	// Retrocompatibility 1.4
-	public function execPayment($cart)
+	public function execPayment($cart,$is_discount)
 	{
+		// error_log('is discount, execPayment'.$is_discount); //debugan
 		if (!$this->active)
 			return ;
 		if (!$this->checkCurrency($cart))
@@ -669,6 +670,7 @@ class VeritransPay extends PaymentModule
 		global $cookie, $smarty;
 
 		$smarty->assign(array(
+			'is_discount' => $is_discount,
 			'payment_type' => Configuration::get('VT_PAYMENT_TYPE'),
       'api_version' => Configuration::get('VT_API_VERSION'),
 			'error_message' => '',
@@ -685,7 +687,7 @@ class VeritransPay extends PaymentModule
 	}
 
 	// Retrocompatibility 1.4
-	public function execValidation($cart)
+	public function execValidation($cart,$is_discount)
 	{
 		global $cookie;
 
@@ -756,6 +758,29 @@ class VeritransPay extends PaymentModule
     $bins = explode(',',Configuration::get('VT_BIN_NUMBER'));
     $veritrans->promo_bins = $bins;
     
+    if($is_discount){
+    	$veritrans->payment_methods = array('credit_card');
+		
+		// add cart voucher
+		$code = Discount::getIdByName('veritrans');
+		$discount = new Discount($code);
+		error_log("===========  discount->id : ".print_r($code,true)); //debugan
+		error_log("===========  discount : ".print_r($discount,true)); //debugan
+		if($cart->addDiscount($code)) error_log("++++++++++++ discount added to cart +++++++++++++");
+		else error_log('--------------- discount failed to be added -----------------');
+		$discount_value = $discount->getValue($nb_discounts = 0, $cart->getOrderTotal(true, Cart::BOTH_WITHOUT_SHIPPING), $shipping_fees = 0, $cart->id, $use_tax = true);
+		error_log("===========  discount_value : ".print_r($discount_value,true)); //debugan
+		$order_id = Order::getOrderByCartId($cart->id);
+		error_log("===========  cart_id : ".print_r($cart->id,true)); //debugan
+		error_log("===========  cart->getDiscounts : ".print_r($cart->getDiscounts(),true)); //debugan
+		error_log("===========  Order Id : ".print_r($order_id,true)); //debugan
+		$order = new Order($order_id);
+		$order->addDiscount($code,'veritrans',$discount_value);
+		error_log("===========  Order : ".print_r($order,true)); //debugan
+		// error_log('is discount @execValidation: '.$is_discount." | discount code: ".$code.' | $Cart: '.print_r($cart,true)); //debugan
+		// end of addition
+    }
+	
     if($cart->isVirtualCart()) {
      $veritrans->required_shipping_address = 0;
      $veritrans->billing_different_with_shipping = 0;
@@ -833,8 +858,8 @@ class VeritransPay extends PaymentModule
     } else if ($veritrans->version == 2 && $veritrans->payment_type == Veritrans::VT_WEB)
     {
     	$keys = $veritrans->getTokens();
-     	error_log('promo bins: '.print_r($veritrans->promo_bins,true));  //debugan
-     	error_log('keys : '.print_r($keys,true)); //debugan
+     	// error_log('promo bins: '.print_r($veritrans->promo_bins,true));  //debugan
+     	// error_log('keys : '.print_r($keys,true)); //debugan
     	if (!in_array($keys['status_code'], array(200, 201, 202)))
     	{
     		$keys['errors'] = array(
@@ -865,6 +890,12 @@ class VeritransPay extends PaymentModule
 	{
 		
 		$products = $cart->getProducts();
+		$discount = -1 * $cart->getOrderTotal(true, Cart::ONLY_DISCOUNTS);
+
+		if (version_compare(Configuration::get('PS_VERSION_DB'), '1.5') == -1){ // for 1.4 version, voucher is negative
+			$discount *= -1;
+		}
+
 		$commodities = array();
 		$price = 0;
 
@@ -887,6 +918,18 @@ class VeritransPay extends PaymentModule
 				"item_name2" => 'Biaya Pengiriman'
 			);			
 		}
+
+		if($discount != 0){
+			$commodities[] = array(
+				"item_id" => 'DISCOUNT_VOUCHER',
+				"price" => $discount, // defer currency conversion until the very last time
+				"quantity" => '1',
+				"item_name1" => 'discount from voucher',				
+			);	
+		}
+		error_log('$cart : '.print_r($cart,true));//debugan
+		error_log('$discount : '.$discount);//debugan
+		error_log(print_r($commodities,true));//debugan
 		
 		return $commodities;
 	}

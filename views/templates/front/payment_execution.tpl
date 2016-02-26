@@ -14,7 +14,9 @@
 	{else}
 		<h3 class="page-subheading">{l s='Payment via Veritrans.' mod='veritranspay'}</h3>
 		{* <form action="{$url}" method="post" name="payment_form" class="std"> *}
-		{if (version_compare(Configuration::get('PS_VERSION_DB'), '1.5') == -1)}
+		{if (version_compare(Configuration::get('PS_VERSION_DB'), '1.5') == -1 && $is_discount == 1)}
+			<form action="{$base_dir|cat:'modules/veritranspay/validation.php?is_discount=1'}" method="post" class="std"> 
+		{else if (version_compare(Configuration::get('PS_VERSION_DB'), '1.5') == -1)}
 			<form action="{$base_dir|cat:'modules/veritranspay/validation.php'}" method="post" class="std"> 
 		{else}
 			<form action="{$link->getModuleLink('veritranspay', 'validation', [], true)}" method="post" class="std"> 
@@ -28,8 +30,14 @@
 				- {l s='The total amount of your order is' mod='veritranspay'}
 				<span id="amount" class="price">{displayPrice price=$total}</span>
 				{if $use_taxes == 1}
-		    	{l s='(tax incl.)' mod='veritranspay'}
-		    {/if}<br/>
+		    		{l s='(tax incl.)' mod='veritranspay'}
+		    	{/if}
+				
+				{if $is_discount == 1}
+		    		<br/>- <strong>{l s='Amount is not yet discounted. Discount will be applied on next step)' mod='veritranspay'}</strong>
+		    	{/if}
+
+		    	<br/>
 				-
 				{if $currencies|@count > 1}
 					{l s='We allow several currencies to be sent via Veritrans.' mod='veritranspay'}
