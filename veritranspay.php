@@ -659,6 +659,21 @@ class VeritransPay extends PaymentModule
 	// Retrocompatibility 1.4
 	public function execPayment($cart,$is_discount)
 	{
+	    if($is_discount){
+	    	// $veritrans->payment_methods = array('credit_card');
+			
+			// add cart voucher
+			$discount = new Discount((int)(Discount::getIdByName('veritrans')));
+			if(!$cart->addDiscount((int)($discount->id)))
+				error_log('--------------- discount failed to be added -----------------');
+			$cart->update();
+			$discount_value = $discount->getValue($nb_discounts = 0, $cart->getOrderTotal(true, Cart::BOTH_WITHOUT_SHIPPING), $shipping_fees = 0, $cart->id, $use_tax = true);
+			if ($tmpError = $cart->checkDiscountValidity($discount, $cart->getDiscounts(), $cart->getOrderTotal(), $cart->getProducts(), true))
+				error_log("################## error ################ ".print_r($tmpError,true)); //debugan
+			// error_log('is discount @execValidation: '.$is_discount." | discount code: ".$code.' | $Cart: '.print_r($cart,true)); //debugan
+			// end of addition
+	    }
+
 		// error_log('is discount, execPayment'.$is_discount); //debugan
 		if (!$this->active)
 			return ;
@@ -760,25 +775,9 @@ class VeritransPay extends PaymentModule
     
     if($is_discount){
     	$veritrans->payment_methods = array('credit_card');
-		
-		// add cart voucher
-		$code = Discount::getIdByName('veritrans');
-		$discount = new Discount($code);
-		error_log("===========  discount->id : ".print_r($code,true)); //debugan
-		error_log("===========  discount : ".print_r($discount,true)); //debugan
-		if($cart->addDiscount($code)) error_log("++++++++++++ discount added to cart +++++++++++++");
-		else error_log('--------------- discount failed to be added -----------------');
-		$discount_value = $discount->getValue($nb_discounts = 0, $cart->getOrderTotal(true, Cart::BOTH_WITHOUT_SHIPPING), $shipping_fees = 0, $cart->id, $use_tax = true);
-		error_log("===========  discount_value : ".print_r($discount_value,true)); //debugan
-		$order_id = Order::getOrderByCartId($cart->id);
-		error_log("===========  cart_id : ".print_r($cart->id,true)); //debugan
-		error_log("===========  cart->getDiscounts : ".print_r($cart->getDiscounts(),true)); //debugan
-		error_log("===========  Order Id : ".print_r($order_id,true)); //debugan
-		$order = new Order($order_id);
-		$order->addDiscount($code,'veritrans',$discount_value);
-		error_log("===========  Order : ".print_r($order,true)); //debugan
-		// error_log('is discount @execValidation: '.$is_discount." | discount code: ".$code.' | $Cart: '.print_r($cart,true)); //debugan
-		// end of addition
+		// error_log("===========  discount_value : ".print_r($discount_value,true)); //debugan
+		// error_log("===========  cart->getDiscounts : ".print_r($cart->getDiscounts(),true)); //debugan
+		// error_log("===========  Order : ".print_r($order,true)); //debugan
     }
 	
     if($cart->isVirtualCart()) {

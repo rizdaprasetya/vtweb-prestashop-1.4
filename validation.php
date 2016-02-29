@@ -57,6 +57,7 @@ if ($keys['errors'])
 	} else if ($veritrans_api_version == 2 && $veritrans_payment_method == 'vtweb')
 	{
 		Tools::redirectLink($keys['redirect_url']);
+		// echo "Added discount"; //debugan
 	} else if ($veritrans_api_version == 2 && $veritrans_payment_method == 'vtdirect')
 	{
 
