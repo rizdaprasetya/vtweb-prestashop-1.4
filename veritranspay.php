@@ -57,6 +57,10 @@ class VeritransPay extends PaymentModule
 			'VT_PAYMENT_CHALLENGE_STATUS_MAP',
 			'VT_ENVIRONMENT',
 			'VT_BIN_NUMBER', //add bin number
+			'VT_BIN_NUMBER2', //add bin number
+			'VT_DISCOUNT_BTN', //add discount btn
+			'VT_TITLE_BTN', //add discount btn
+			'VT_TITLE_BTN2', //add discount btn
 			);
 
 		foreach (array('BNI', 'MANDIRI', 'CIMB') as $bank) {
@@ -266,6 +270,17 @@ class VeritransPay extends PaymentModule
 				)
 			);
 
+		$discount_btns = array(
+			array(
+				'id_option' => 'disable',
+				'name' => 'Disable'
+				),
+			array(
+				'id_option' => 'enable',
+				'name' => 'Enable'
+				)
+			);
+
 		$fields_form = array(
 			'form' => array(
 				'legend' => array(
@@ -452,9 +467,41 @@ class VeritransPay extends PaymentModule
 						),
 					array(
 						'type' => 'text',
+						'label' => 'Payment button display title',
+						'name' => 'VT_TITLE_BTN',
+						'required' => false,
+						'desc' => 'Displayed payment button text in checkout page',
+						),
+					array(
+						'type' => 'text',
 						'label' => 'BIN Filter numbers',
 						'name' => 'VT_BIN_NUMBER',
 						'desc' => 'Insert bin numbers to filter credit card payment.'
+						),
+					array(
+						'type' => 'select',
+						'label' => 'Enable additional payment button for discount',
+						'name' => 'VT_DISCOUNT_BTN',
+						'required' => true,
+						'options' => array(
+							'query' => $discount_btns,
+							'id' => 'id_option',
+							'name' => 'name'
+							),
+						'class' => 'v2_settings sensitive'
+						),
+					array(
+						'type' => 'text',
+						'label' => 'BIN Filter numbers for discounted payment button',
+						'name' => 'VT_BIN_NUMBER2',
+						'desc' => 'Insert bin numbers to filter for credit card payment in the discounted payment button.'
+						),
+					array(
+						'type' => 'text',
+						'label' => 'Discounted payment button display title',
+						'name' => 'VT_TITLE_BTN2',
+						'required' => false,
+						'desc' => 'Displayed discounted payment button text in checkout page',
 						),
 					array(
 						'type' => 'text',
@@ -501,6 +548,17 @@ class VeritransPay extends PaymentModule
 			);
 		}
 
+		$discount_btns = array(
+			array(
+				'id_option' => 'disable',
+				'name' => 'Disable'
+				),
+			array(
+				'id_option' => 'enable',
+				'name' => 'Enable'
+				)
+		);
+
 		$this->context->smarty->assign(array(
 			'form_url' => Tools::htmlentitiesUTF8($_SERVER['REQUEST_URI']),
 			'merchant_id' => htmlentities(Configuration::get('VT_MERCHANT_ID'), ENT_COMPAT, 'UTF-8'),
@@ -513,7 +571,12 @@ class VeritransPay extends PaymentModule
 			'server_key' => htmlentities(Configuration::get('VT_SERVER_KEY'), ENT_COMPAT, 'UTF-8'),
 			'environments' => array(Veritrans::ENVIRONMENT_DEVELOPMENT => 'Development', Veritrans::ENVIRONMENT_PRODUCTION => 'Production'),
 			'environment' => htmlentities(Configuration::get('VT_ENVIRONMENT'), ENT_COMPAT, 'UTF-8'),
+			'discount_btns' => $discount_btns,
+			'discount_btn' => htmlentities(Configuration::get('VT_DISCOUNT_BTN'), ENT_COMPAT, 'UTF-8'),
 			'bin_number' => htmlentities(Configuration::get('VT_BIN_NUMBER'), ENT_COMPAT, 'UTF-8'), // Add bin number
+			'bin_number2' => htmlentities(Configuration::get('VT_BIN_NUMBER2'), ENT_COMPAT, 'UTF-8'), // Add bin number
+			'title_btn' => htmlentities(Configuration::get('VT_TITLE_BTN'), ENT_COMPAT, 'UTF-8'),
+			'title_btn2' => htmlentities(Configuration::get('VT_TITLE_BTN2'), ENT_COMPAT, 'UTF-8'),
 			'statuses' => $order_states,
 			'payment_success_status_map' => htmlentities(Configuration::get('VT_PAYMENT_SUCCESS_STATUS_MAP'), ENT_COMPAT, 'UTF-8'),
 			'payment_challenge_status_map' => htmlentities(Configuration::get('VT_PAYMENT_CHALLENGE_STATUS_MAP'), ENT_COMPAT, 'UTF-8'),
@@ -577,8 +640,24 @@ class VeritransPay extends PaymentModule
 
 		$cart = $this->context->cart;
 
+		$discount_btn_enabled = false;  //check if btn enabled
+		if(Configuration::get('VT_DISCOUNT_BTN')=='enable')
+			$discount_btn_enabled = true;
+
+		if(strlen(Configuration::get('VT_TITLE_BTN')) < 1)
+			$title_btn = 'Pay using Veritrans (credit card and others)';
+		else
+			$title_btn = Configuration::get('VT_TITLE_BTN');
+		if(strlen(Configuration::get('VT_TITLE_BTN2')) < 1)
+			$title_btn2 = 'Pay with promo discount';
+		else
+			$title_btn2 = Configuration::get('VT_TITLE_BTN2');
+
 		$this->context->smarty->assign(array(
 			'cart' => $cart,
+			'title_btn' => $title_btn,
+			'title_btn2' => $title_btn2,
+			'discount_btn_enabled' => $discount_btn_enabled,
 			'this_path' => $this->_path,
 			'this_path_ssl' => Tools::getShopDomainSsl(true, true).__PS_BASE_URI__.'modules/'.$this->name.'/'
 		));
@@ -659,7 +738,7 @@ class VeritransPay extends PaymentModule
 	// Retrocompatibility 1.4
 	public function execPayment($cart,$is_discount)
 	{
-	    if($is_discount){
+	    if($is_discount && Configuration::get('VT_DISCOUNT_BTN') == 'enable'){
 	    	// $veritrans->payment_methods = array('credit_card');
 			
 			// add cart voucher
@@ -770,16 +849,21 @@ class VeritransPay extends PaymentModule
     $veritrans->email = $customer->email;
 
     // add bin promo
-    $bins = explode(',',Configuration::get('VT_BIN_NUMBER'));
-    $veritrans->promo_bins = $bins;
+    $bins = null;
+    if(strlen(Configuration::get('VT_BIN_NUMBER')) > 0)
+    	$bins = explode(',',Configuration::get('VT_BIN_NUMBER'));
     
     if($is_discount){
+    	if(strlen(Configuration::get('VT_BIN_NUMBER2')) > 0)
+    		$bins = explode(',',Configuration::get('VT_BIN_NUMBER2'));
     	$veritrans->payment_methods = array('credit_card');
 		// error_log("===========  discount_value : ".print_r($discount_value,true)); //debugan
 		// error_log("===========  cart->getDiscounts : ".print_r($cart->getDiscounts(),true)); //debugan
 		// error_log("===========  Order : ".print_r($order,true)); //debugan
     }
-	
+    $veritrans->promo_bins = $bins;
+    // error_log("=============== ".print_r($veritrans->promo_bins,true)." ==============="); //debugan
+
     if($cart->isVirtualCart()) {
      $veritrans->required_shipping_address = 0;
      $veritrans->billing_different_with_shipping = 0;
@@ -926,9 +1010,9 @@ class VeritransPay extends PaymentModule
 				"item_name1" => 'discount from voucher',				
 			);	
 		}
-		error_log('$cart : '.print_r($cart,true));//debugan
-		error_log('$discount : '.$discount);//debugan
-		error_log(print_r($commodities,true));//debugan
+		// error_log('$cart : '.print_r($cart,true));//debugan
+		// error_log('$discount : '.$discount);//debugan
+		// error_log(print_r($commodities,true));//debugan
 		
 		return $commodities;
 	}

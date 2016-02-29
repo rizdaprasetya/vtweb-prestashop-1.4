@@ -104,10 +104,40 @@
       <!-- PAYMENT_FAILURE_STATUS_MAP -->
 
       <tr>
+        <td width="300" style="vertical-align: top;">Payment button display title</td>
+        <td><input type="text" name="VT_TITLE_BTN" value="{$title_btn}" style="width: 300px;" /></td>
+      </tr>
+      <!-- TITLE_BTN -->
+
+      <tr>
         <td width="300" style="vertical-align: top;">BIN Filter numbers</td>
         <td><input type="text" name="VT_BIN_NUMBER" value="{$bin_number}" style="width: 300px;" /></td>
       </tr>
       <!-- BIN_NUMBER -->
+
+      <tr>
+        <td width="300" style="vertical-align: top;">Additional payment button for discount</td>
+        <td>
+          <select name="VT_DISCOUNT_BTN">
+            {foreach from=$discount_btns item=v key=k}
+              <option value="{$v['id_option']}" {if $v['id_option'] == $discount_btn}selected{/if}>{$v['name']}</option>
+            {/foreach}
+          </select>
+        </td>
+      </tr>
+      <!-- DISCOUNT_BTN -->
+
+      <tr>
+        <td width="300" style="vertical-align: top;">Discounted payment button display title</td>
+        <td><input type="text" name="VT_TITLE_BTN2" value="{$title_btn2}" style="width: 300px;" /></td>
+      </tr>
+      <!-- TITLE_BTN2 -->
+
+      <tr>
+        <td width="300" style="vertical-align: top;">BIN Filter numbers for discounted payment button</td>
+        <td><input type="text" name="VT_BIN_NUMBER2" value="{$bin_number2}" style="width: 300px;" /></td>
+      </tr>
+      <!-- BIN_NUMBER2 -->
 
       <tr>
         <td width="300" style="vertical-align: top;">Kurs</td>
