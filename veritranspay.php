@@ -987,8 +987,8 @@ class VeritransPay extends PaymentModule
 				"item_id" => $aProduct['id_product'],
 				"price" =>  $aProduct['price_wt'],
 				"quantity" => $aProduct['cart_quantity'],
-				"item_name1" => $aProduct['name'],
-				"item_name2" => $aProduct['name']
+				"item_name1" => substr($aProduct['name'], 0, 49),
+				"item_name2" => substr($aProduct['name'], 0, 49)
 			);
 		}
 
