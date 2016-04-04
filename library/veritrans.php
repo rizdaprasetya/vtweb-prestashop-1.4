@@ -47,7 +47,7 @@ class Veritrans
     $this->veritrans_method = self::VT_WEB;
     $this->veritrans_engine = new Veritrans\Factory($this);
     $this->billing_different_with_shipping = 0;
-    $this->enable_3d_secure = FALSE;
+    $this->enable_3d_secure = TRUE;
   }
 
   public function getTokens($options = array())

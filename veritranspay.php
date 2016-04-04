@@ -833,7 +833,8 @@ class VeritransPay extends PaymentModule
     $veritrans->merchant_hash_key = Configuration::get('VT_MERCHANT_HASH');
     $veritrans->client_key = Configuration::get('VT_CLIENT_KEY');
     $veritrans->server_key = Configuration::get('VT_SERVER_KEY');
-    $veritrans->enable_3d_secure = Configuration::get('VT_3D_SECURE');
+    // $veritrans->enable_3d_secure = Configuration::get('VT_3D_SECURE');
+    $veritrans->enable_3d_secure = true;
     $veritrans->force_sanitization = true;
     
     // Billing Address
@@ -1058,37 +1059,43 @@ class VeritransPay extends PaymentModule
 
 	public function execNotification()
 	{
-		$mailVars = array(
-		  '{merchant_id}' => Configuration::get('VT_MERCHANT_ID'),
-		  '{merchant_hash}' => nl2br(Configuration::get('VT_MERCHANT_HASH'))
-		);
+		// $mailVars = array(
+		//   '{merchant_id}' => Configuration::get('VT_MERCHANT_ID'),
+		//   '{merchant_hash}' => nl2br(Configuration::get('VT_MERCHANT_HASH'))
+		// );
 
-		$veritrans_notification = new VeritransNotification();
+		// $veritrans_notification = new VeritransNotification();
 		$history = new OrderHistory();
 
 		/** Validating order*/
 		if (Configuration::get('VT_API_VERSION') == 2)
 		{
-		  $history->id_order = (int)$veritrans_notification->order_id;
+		  
+		  $raw_notification = json_decode(file_get_contents("php://input"), true);
+		  error_log(" Array notification from veritrans :");
+		  error_log(print_r($raw_notification,true));
+		  error_log("========================================================");
+		  // exit;
+		  $history->id_order = (int)$raw_notification['order_id'];
 
 		  // confirm back to Veritrans server
-		  $veritrans = new Veritrans();
-		  $veritrans->server_key = Configuration::get('VT_SERVER_KEY');
-		  $confirmation = $veritrans->confirm($veritrans_notification->order_id);
-		  
-		  if ($confirmation)
+		  // $veritrans = new Veritrans();
+		  // $veritrans->server_key = Configuration::get('VT_SERVER_KEY');
+		  // $confirmation = $veritrans->confirm($veritrans_notification->order_id);
+
+		  if (true)
 		  {
-		    if ($confirmation['transaction_status'] == 'capture')
+		    if ($raw_notification['transaction_status'] == 'capture')
 		    {
-		      $history->changeIdOrderState(Configuration::get('VT_PAYMENT_SUCCESS_STATUS_MAP'), (int)$confirmation['order_id']);
+		      $history->changeIdOrderState(Configuration::get('VT_PAYMENT_SUCCESS_STATUS_MAP'), (int)$raw_notification['order_id']);
 		      echo 'Valid success notification accepted.';
-		    } else if ($confirmation['transaction_status'] == 'challenge')
+		    } else if ($raw_notification['transaction_status'] == 'challenge')
 		    {
-		      $history->changeIdOrderState(Configuration::get('VT_PAYMENT_CHALLENGE_STATUS_MAP'), (int)$confirmation['order_id']);
+		      $history->changeIdOrderState(Configuration::get('VT_PAYMENT_CHALLENGE_STATUS_MAP'), (int)$raw_notification['order_id']);
 		      echo 'Valid challenge notification accepted.';
 		    } else
 		    {
-		      $history->changeIdOrderState(Configuration::get('VT_PAYMENT_FAILURE_STATUS_MAP'), (int)$confirmation['order_id']);
+		      $history->changeIdOrderState(Configuration::get('VT_PAYMENT_FAILURE_STATUS_MAP'), (int)$raw_notification['order_id']);
 		      echo 'Valid failure notification accepted';
 		    }
 		    $history->add(true);
