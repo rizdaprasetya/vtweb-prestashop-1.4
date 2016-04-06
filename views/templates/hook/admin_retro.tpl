@@ -102,20 +102,60 @@
         </td>
       </tr>
       <!-- PAYMENT_FAILURE_STATUS_MAP -->
+    
+      <tr>
+        <td width="300" style="vertical-align: top;">Enable 3D Secure?</td>
+        <td><input type="checkbox" name="VT_3D_SECURE" {if $enable_3d_secure}checked{/if} style="width: 300px;" /></td>
+      </tr>
+      <!-- 3D_SECURE -->
+      
+      <tr>
+        <td width="300" style="vertical-align: top;">Enable Sanitization?</td>
+        <td><input type="checkbox" name="VT_SANITIZED" {if $enable_sanitized}checked{/if} style="width: 300px;" /></td>
+      </tr>
+      <!-- Sanitized -->
+      <tr>
+        <td width="300" style="vertical-align: top;">Enable Credit CARD?</td>
+        <td><input type="checkbox" name="ENABLED_CREDIT_CARD" {if $enabled_cimb}checked{/if} style="width: 300px;" /></td>
+      </tr>
+      <!-- Credit card payment -->
+
 
       <tr>
+        <td width="300" style="vertical-align: top;">Enable CIMB Clicks?</td>
+        <td><input type="checkbox" name="ENABLED_CIMB" {if $enabled_cimb}checked{/if} style="width: 300px;" /></td>
+      </tr>
+      <!-- Cimb enable payment -->
+
+       <tr>
+        <td width="300" style="vertical-align: top;">Enable Mandiri ClickPay?</td>
+        <td><input type="checkbox" name="ENABLED_MANDIRI" {if $enabled_mandiri}checked{/if} style="width: 300px;" /></td>
+      </tr>      
+      <!-- mandiri payment -->
+       <tr>
+        <td width="300" style="vertical-align: top;">Enable Permata VA?</td>
+        <td><input type="checkbox" name="ENABLED_PERMATAVA" {if $enabled_permatava}checked{/if} style="width: 300px;" /></td>
+      </tr>      
+      <!-- permata va -->
+       <tr>
+        <td width="300" style="vertical-align: top;">Enable BRI EPay?</td>
+        <td><input type="checkbox" name="ENABLED_BRIEPAY" {if $enabled_briepay}checked{/if} style="width: 300px;" /></td>
+      </tr>      
+      <!-- BRI epay -->      
+
+       <tr>
         <td width="300" style="vertical-align: top;">Payment button display title</td>
         <td><input type="text" name="VT_TITLE_BTN" value="{$title_btn}" style="width: 300px;" /></td>
       </tr>
       <!-- TITLE_BTN -->
 
       <tr>
-        <td width="300" style="vertical-align: top;">BIN Filter numbers</td>
-        <td><input type="text" name="VT_BIN_NUMBER" value="{$bin_number}" style="width: 300px;" /></td>
-      </tr>
-      <!-- BIN_NUMBER -->
-
-      <tr>
+         <td width="300" style="vertical-align: top;">BIN Filter numbers</td>
+         <td><input type="text" name="VT_BIN_NUMBER" value="{$bin_number}" style="width: 300px;" /></td>
+       </tr>
+       <!-- BIN_NUMBER -->
+ 
+       <tr>
         <td width="300" style="vertical-align: top;">Additional payment button for discount</td>
         <td>
           <select name="VT_DISCOUNT_BTN">
@@ -130,7 +170,7 @@
       <tr>
         <td width="300" style="vertical-align: top;">Discounted payment button display title</td>
         <td><input type="text" name="VT_TITLE_BTN2" value="{$title_btn2}" style="width: 300px;" /></td>
-      </tr>
+     </tr>
       <!-- TITLE_BTN2 -->
 
       <tr>

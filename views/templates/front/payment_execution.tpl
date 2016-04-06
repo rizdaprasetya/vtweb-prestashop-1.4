@@ -22,7 +22,7 @@
 			<form action="{$link->getModuleLink('veritranspay', 'validation', [], true)}" method="post" class="std"> 
 		{/if}
 			<p>
-				<img src="{$this_path}veritrans.jpg" alt="{l s='Veritrans' mod='veritranspay'}" height="49" style="float:left; margin: 0px 10px 5px 0px;" />
+				<img src="{$this_path}Veritrans.png" alt="{l s='Veritrans' mod='veritranspay'}" height="49" style="float:left; margin: 0px 10px 5px 0px;" />
 				<br/><b>{l s='You have chosen to pay via Veritrans.' mod='veritranspay'}</b><br/>
 			</p>
 
@@ -68,11 +68,7 @@
 				<div class="form-group">
 					<label for="">CVV</label>
 					<input type="text" class="form-control">
-				</div>		
-			{else}<!-- deactivated because causing error log
-				<input type="hidden" size="30" name="MERCHANT_ID" value="{$merchant_id}" />
-				<input type="hidden" name="ORDER_ID" value="{$order_id}" />
-				<input type="hidden" size="70" name="TOKEN_BROWSER" value="{$token_browser}" /> -->
+				</div>					
 			{/if}
 
 			<h3 class="page-subheading">Confirm Order</h3>
