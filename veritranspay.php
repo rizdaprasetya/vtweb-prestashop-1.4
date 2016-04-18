@@ -1720,7 +1720,12 @@ class VeritransPay extends PaymentModule
 		       echo 'Valid failure notification accepted';
 		     }
 		    
-		     $history->add(true);		     			  
+		    try{
+		    	$history->add(true);		     			  
+		    } catch(Exception $e) {
+				echo 'Order history not added: ' .$e->getMessage();
+				exit;
+			}
 		//}
 		exit;
 	}
